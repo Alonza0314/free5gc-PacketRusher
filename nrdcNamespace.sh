@@ -10,7 +10,7 @@ ipSranHost=10.0.2.1
 ipSranNs=10.0.2.2
 
 usage() {
-    echo "Usage: $0 [up|down|mran|sran]"
+    echo "Usage: $0 [up|down|mran|sran|dump]"
     exit 1
 }
 
@@ -96,6 +96,13 @@ main() {
             ;;
         sran)
             sudo ip netns exec sran_ns bash
+            ;;
+        dump)
+            if [ -z "$2" ]; then
+                echo "Usage: $0 dump <output_file>"
+                exit 1
+            fi
+            sudo tcpdump -i any -w $2
             ;;
         *)
             usage
