@@ -13,8 +13,6 @@ import (
 	"github.com/free5gc/aper"
 	"github.com/free5gc/ngap"
 
-	customNgapType "my5G-RANTester/lib/ngap/ngapType"
-
 	"github.com/free5gc/ngap/ngapConvert"
 	"github.com/free5gc/ngap/ngapType"
 )
@@ -145,10 +143,10 @@ func GetPDUSessionResourceSetupResponseTransfer(ipv4 netip.Addr, teid uint32, qo
 	return encodeData
 }
 
-func buildPDUSessionResourceSetupResponseTransfer(ipv4 netip.Addr, teid uint32, qosId int64) (data customNgapType.PDUSessionResourceSetupResponseTransfer) {
+func buildPDUSessionResourceSetupResponseTransfer(ipv4 netip.Addr, teid uint32, qosId int64) (data ngapType.PDUSessionResourceSetupResponseTransfer) {
 
 	// QoS Flow per TNL Information
-	qosFlowPerTNLInformation := &data.QosFlowPerTNLInformation
+	qosFlowPerTNLInformation := &data.DLQosFlowPerTNLInformation
 	qosFlowPerTNLInformation.UPTransportLayerInformation.Present = ngapType.UPTransportLayerInformationPresentGTPTunnel
 
 	// UP Transport Layer Information in QoS Flow per TNL Information
@@ -166,6 +164,27 @@ func buildPDUSessionResourceSetupResponseTransfer(ipv4 netip.Addr, teid uint32, 
 	associatedQosFlowItem := ngapType.AssociatedQosFlowItem{}
 	associatedQosFlowItem.QosFlowIdentifier.Value = qosId
 	associatedQosFlowList.List = append(associatedQosFlowList.List, associatedQosFlowItem)
+
+	// DC QoS Flow per TNL Information
+	DCQosFlowPerTNLInformationItem := ngapType.QosFlowPerTNLInformationItem{}
+	DCQosFlowPerTNLInformationItem.QosFlowPerTNLInformation.UPTransportLayerInformation.Present = ngapType.UPTransportLayerInformationPresentGTPTunnel
+
+	// DC Transport Layer Information in QoS Flow per TNL Information
+	DCUpTransportLayerInformation := &DCQosFlowPerTNLInformationItem.QosFlowPerTNLInformation.UPTransportLayerInformation
+	DCUpTransportLayerInformation.Present = ngapType.UPTransportLayerInformationPresentGTPTunnel
+	DCUpTransportLayerInformation.GTPTunnel = new(ngapType.GTPTunnel)
+	DCUpTransportLayerInformation.GTPTunnel.GTPTEID.Value = aper.OctetString("\x00\x00\x00\x02")
+	DCUpTransportLayerInformation.GTPTunnel.TransportLayerAddress = ngapConvert.IPAddressToNgap("10.0.2.2", "")
+
+	// DC Associated QoS Flow List in QoS Flow per TNL Information
+	DCAssociatedQosFlowList := &DCQosFlowPerTNLInformationItem.QosFlowPerTNLInformation.AssociatedQosFlowList
+	DCAssociatedQosFlowItem := ngapType.AssociatedQosFlowItem{}
+	DCAssociatedQosFlowItem.QosFlowIdentifier.Value = qosId
+	DCAssociatedQosFlowList.List = append(DCAssociatedQosFlowList.List, DCAssociatedQosFlowItem)
+
+	// Additional DL QoS Flow per TNL Information
+	data.AdditionalDLQosFlowPerTNLInformation = new(ngapType.QosFlowPerTNLInformationList)
+	data.AdditionalDLQosFlowPerTNLInformation.List = append(data.AdditionalDLQosFlowPerTNLInformation.List, DCQosFlowPerTNLInformationItem)
 
 	return
 }
