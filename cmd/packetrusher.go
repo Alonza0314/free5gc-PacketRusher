@@ -3,6 +3,7 @@ package main
 import (
 	"my5G-RANTester/config"
 	"my5G-RANTester/internal/templates"
+	"my5G-RANTester/internal/control_test_engine/gnb"
 	pcap "my5G-RANTester/internal/utils"
 
 	// "fmt"
@@ -57,6 +58,23 @@ func main() {
 					}
 
 					templates.TestAttachUeWithConfiguration(tunnelEnabled)
+					return nil
+				},
+			},
+			{
+				Name:  "mran",
+				Usage: "Test default tunnel function",
+				Action: func(c *cli.Context) error {
+					gnb.MranAction()
+					return nil
+				},
+			},
+			{
+				Name: "sran",
+				Usage: "Launch a UDP connection to N3 interface for mocking a gNB as SRAN",
+				Action: func(c *cli.Context) error {
+					cfg := setConfig(*c)
+					gnb.SranAction(cfg)
 					return nil
 				},
 			},
